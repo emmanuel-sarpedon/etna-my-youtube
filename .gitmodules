@@ -1,0 +1,6 @@
+[submodule "etna-my-youtube.api.microservice"]
+	path = etna-my-youtube.api.microservice
+	url = https://github.com/emmanuel-sarpedon/etna-my-youtube.api.microservice.git
+[submodule "etna-my-youtube.encode.microservice"]
+	path = etna-my-youtube.encode.microservice
+	url = https://github.com/emmanuel-sarpedon/etna-my-youtube.encode.microservice.git
