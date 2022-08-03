@@ -1,0 +1,73 @@
+services:
+#  Postgres database
+  db.microservice:
+    image: postgres
+    volumes:
+      - db:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    expose:
+      - "5432"
+    networks:
+      custom-subnet:
+        ipv4_address: 192.168.1.10
+
+#  API server
+  myapi.microservice:
+    depends_on:
+      - db.microservice
+    build: ./etna-my-youtube.api.microservice
+    links:
+      - "db.microservice"
+    ports:
+      - "3000:${PORT}"
+    volumes:
+      - videos:/home/api/videos
+    expose:
+      - ${PORT}
+    environment:
+      PORT: ${PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: db.microservice
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      PUBLIC_PATH: /home/api/videos
+    networks:
+      custom-subnet:
+        ipv4_address: 192.168.1.11
+
+
+  # Encode service
+  encode.microservice:
+    depends_on:
+      - myapi.microservice
+    build: ./etna-my-youtube.encode.microservice
+    links:
+      - "myapi.microservice"
+    volumes:
+      - videos:/home/api/videos
+    environment:
+      PUBLIC_PATH: /home/api/videos/sources
+      API_URI: http://192.168.1.11:${PORT}
+    networks:
+      custom-subnet:
+        ipv4_address: 192.168.1.12
+
+volumes:
+  videos: {}
+  db: {}
+
+networks:
+  custom-subnet:
+    external: false
+    driver: bridge
+    name: custom-subnet
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
