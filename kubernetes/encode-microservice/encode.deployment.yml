@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encode-service
+spec:
+  selector:
+    matchLabels:
+      app: encode-service
+  template:
+    metadata:
+      labels:
+        app: encode-service
+    spec:
+      containers:
+        - name: encode-service
+          image: emmanuelsarpedon/encode.service:latest
+          env:
+            - name: PUBLIC_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: public_path_sources
+            - name: API_URI
+              value: http://api-service:3000
+          volumeMounts:
+            - mountPath: /home/api/videos
+              name: videos
+
+      volumes:
+        - name: videos
+          hostPath:
+            path: /var/data/videos
+            type: DirectoryOrCreate

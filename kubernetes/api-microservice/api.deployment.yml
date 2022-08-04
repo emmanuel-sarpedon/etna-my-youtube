@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-service
+spec:
+  selector:
+    matchLabels:
+      app: api-service
+  template:
+    metadata:
+      labels:
+        app: api-service
+    spec:
+      containers:
+        - name: api-service
+          image: emmanuelsarpedon/api.service:latest
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3000"
+
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: database_name
+
+            - name: DATABASE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: database_username
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: database_password
+
+            - name: DATABASE_HOST
+              value: db-service
+
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: jwt_secret_key
+
+            - name: PUBLIC_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: public_path
+
+          volumeMounts:
+            - mountPath: /home/api/videos
+              name: videos
+
+      volumes:
+        - name: videos
+          hostPath:
+            path: /var/data/videos
+            type: DirectoryOrCreate

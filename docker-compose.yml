@@ -1,6 +1,6 @@
 services:
 #  Postgres database
-  db.microservice:
+  db.service:
     image: postgres
     volumes:
       - db:/var/lib/postgresql/data
@@ -16,12 +16,13 @@ services:
         ipv4_address: 192.168.1.10
 
 #  API server
-  myapi.microservice:
+  api.service:
+    image: emmanuelsarpedon/api.service:latest
     depends_on:
-      - db.microservice
+      - db.service
     build: ./etna-my-youtube.api.microservice
     links:
-      - "db.microservice"
+      - "db.service"
     ports:
       - "3000:${PORT}"
     volumes:
@@ -33,7 +34,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME}
       DATABASE_USERNAME: ${DATABASE_USERNAME}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_HOST: db.microservice
+      DATABASE_HOST: db.service
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       PUBLIC_PATH: /home/api/videos
     networks:
@@ -42,12 +43,13 @@ services:
 
 
   # Encode service
-  encode.microservice:
+  encode.service:
+    image: emmanuelsarpedon/encode.service:latest
     depends_on:
-      - myapi.microservice
+      - api.service
     build: ./etna-my-youtube.encode.microservice
     links:
-      - "myapi.microservice"
+      - "api.service"
     volumes:
       - videos:/home/api/videos
     environment:
